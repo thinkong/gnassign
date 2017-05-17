@@ -23,6 +23,22 @@ func (cl CheckList) SearchMatch(url string) (bool) {
 	return true
 }
 
+func (cl *CheckList) AddString(str string) {
+	if str[0] == '*' {
+		if len(str) == 1 {
+			cl.MatchEverything = true
+			return
+		}
+		if str[1] == '.' {
+			cl.SubDomain = append(cl.SubDomain, str)
+		} else {
+			cl.List = append(cl.List, str)
+		}
+	} else if str[len(str) - 1] == '/' {
+		cl.StartsWith = append(cl.StartsWith, str)
+	}
+}
+
 func (cl *CheckList) ReadConf(filename string) (error) {
 	f, err := os.Open(filename)
 	if err != nil {
@@ -35,19 +51,7 @@ func (cl *CheckList) ReadConf(filename string) (error) {
 		if len(str) == 0 {
 			continue
 		}
-		if str[0] == '*' {
-			if len(str) == 1 {
-				cl.MatchEverything = true
-				return nil
-			}
-			if str[1] == '.' {
-				cl.SubDomain = append(cl.SubDomain, str)
-			} else {
-				cl.List = append(cl.List, str)
-			}
-		} else if str[len(str) - 1] == '/' {
-			cl.StartsWith = append(cl.StartsWith, str)
-		}
+		cl.AddString(str)
 	}
 
 	err = scanner.Err()
