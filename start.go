@@ -4,6 +4,8 @@ import (
 	"os"
 	"bufio"
 	"log"
+	"net/url"
+	"strings"
 )
 
 type CheckList struct {
@@ -13,14 +15,37 @@ type CheckList struct {
 	MatchEverything bool
 }
 
-func (cl CheckList) SearchMatch(url string) (bool) {
+func (cl CheckList) SearchMatch(urlstring string) (bool) {
 	if cl.MatchEverything {
 		return true
 	}
-	for _, s := range cl.List {
-		log.Println(s)
+	u, uerr := url.Parse(urlstring)
+	if uerr != nil {
+		log.Println(uerr.Error())
+		return false
 	}
-	return true
+
+	for _, s := range cl.List {
+		matched, err := Match(s, urlstring)
+		if err != nil {
+			log.Fatalln(err.Error())
+			return false
+		}
+		if matched {
+			return true
+		}
+	}
+	for _, s := range cl.SubDomain {
+		if s != u.Hostname() && strings.Contains(u.Hostname(), s) {
+			return true
+		}
+	}
+	for _, s := range cl.StartsWith {
+		if strings.HasPrefix(urlstring, s) {
+			return true
+		}
+	}
+	return false
 }
 
 func (cl *CheckList) AddString(str string) {
@@ -30,6 +55,8 @@ func (cl *CheckList) AddString(str string) {
 			return
 		}
 		if str[1] == '.' {
+			str = str[2:]
+			log.Println(str)
 			cl.SubDomain = append(cl.SubDomain, str)
 		} else {
 			cl.List = append(cl.List, str)
