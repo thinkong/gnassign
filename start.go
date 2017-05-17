@@ -7,7 +7,20 @@ import (
 )
 
 type CheckList struct {
-	List []string
+	List            []string // everything else
+	SubDomain       []string // stuff like *.gracenote.com
+	StartsWith      []string // stuff that starts with
+	MatchEverything bool
+}
+
+func (cl CheckList) SearchMatch(url string) (bool) {
+	if cl.MatchEverything {
+		return true
+	}
+	for _, s := range cl.List {
+		log.Println(s)
+	}
+	return true
 }
 
 func (cl *CheckList) ReadConf(filename string) (error) {
@@ -18,8 +31,23 @@ func (cl *CheckList) ReadConf(filename string) (error) {
 	defer f.Close()
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
-		cl.List = append(cl.List, scanner.Text())
-		log.Println(scanner.Text())
+		str := scanner.Text()
+		if len(str) == 0 {
+			continue
+		}
+		if str[0] == '*' {
+			if len(str) == 1 {
+				cl.MatchEverything = true
+				return nil
+			}
+			if str[1] == '.' {
+				cl.SubDomain = append(cl.SubDomain, str)
+			} else {
+				cl.List = append(cl.List, str)
+			}
+		} else if str[len(str) - 1] == '/' {
+			cl.StartsWith = append(cl.StartsWith, str)
+		}
 	}
 
 	err = scanner.Err()
