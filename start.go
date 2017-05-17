@@ -19,10 +19,15 @@ func (cl CheckList) SearchMatch(urlstring string) (bool) {
 	if cl.MatchEverything {
 		return true
 	}
-	u, uerr := url.Parse(urlstring)
+	u, uerr := url.ParseRequestURI(urlstring)
 	if uerr != nil {
-		log.Println(uerr.Error())
-		return false
+		//log.Println(uerr.Error())
+		//log.Println("http:// missing")
+		u, uerr = url.ParseRequestURI("http://" + urlstring)
+		if uerr != nil {
+			log.Println(uerr.Error())
+			return false
+		}
 	}
 
 	for _, s := range cl.List {
@@ -73,17 +78,20 @@ func (cl *CheckList) ReadConf(filename string) (error) {
 	}
 	defer f.Close()
 	scanner := bufio.NewScanner(f)
+	cnt := 0
 	for scanner.Scan() {
 		str := scanner.Text()
 		if len(str) == 0 {
 			continue
 		}
 		cl.AddString(str)
+		cnt++
 	}
 
 	err = scanner.Err()
 	if err != nil {
 		return err
 	}
+	log.Println("loaded", cnt, "blacklists")
 	return nil
 }
