@@ -4,7 +4,7 @@ import "testing"
 
 var cl CheckList
 
-func initializeTest() {
+func init() {
 	cl = CheckList{}
 	cl.AddString("*/img/*.jpg")
 	cl.AddString("*.gracenote.com")
@@ -12,7 +12,7 @@ func initializeTest() {
 }
 
 func TestCheckList_ReadConf(t *testing.T) {
-	initializeTest()
+	//initializeTest()
 	// Nothing to test...
 }
 
@@ -32,13 +32,35 @@ func TestCheckList_AddString(t *testing.T) {
 }
 
 func TestCheckList_SearchMatch(t *testing.T) {
-	initializeTest()
-	matched := cl.SearchMatch("http://localhost:80/donwload_image?url=www.gracenote.com/img/1.jpg")
+	//initializeTest()
+	matched := cl.SearchMatch("www.gracenote.com/img/1.jpg")
 	if !matched {
 		t.Error("supposed to match1")
 	}
-	matched = cl.SearchMatch("http://localhost:80/donwload_image?url=gracenote.com/abc.png")
+	matched = cl.SearchMatch("gracenote.com/abc.png")
 	if matched {
 		t.Error("supposed to not match")
+	}
+	matched = cl.SearchMatch("gracenote.com/example/abc.png")
+	if !matched {
+		t.Error("supposed to match")
+	}
+}
+
+func BenchmarkCheckList_SearchMatch(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		matched := cl.SearchMatch("www.gracenote.com/img/1.jpg")
+		if !matched {
+			b.Error("supposed to match1")
+		}
+	}
+}
+
+func BenchmarkCheckList_SearchMatch2(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		matched := cl.SearchMatch("gracenote.com/abc.png")
+		if matched {
+			b.Error("supposed to not match")
+		}
 	}
 }
