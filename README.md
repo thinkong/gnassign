@@ -10,10 +10,12 @@
 ## Test
 * Windows 10
 
+Although this is tested on windows, there should be no problem running it on other platforms.
+
 # Getting Started
 make sure you have [go](https://golang.org/dl/)
 ```
-go get github.com/thinkong/gnassign
+go get github.com/thinkong/gnassign/runnable
 go install github.com/thinkong/gnassign/runnable
 ```
 
